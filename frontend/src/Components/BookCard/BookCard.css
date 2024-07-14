@@ -16,3 +16,13 @@
 .book_card_item img {
   margin-right: 20px;
 }
+
+.blue_text {
+  color: rgb(0, 0, 153);
+}
+
+@media (max-width: 480px) {
+  .book_card_container {
+    width: 90%;
+  }
+}

@@ -53,6 +53,9 @@
 }
 
 @media (max-width: 480px) {
+  .home_search_container {
+    width: 80%;
+  }
   .home_search_input {
     width: 80%;
     margin: auto;
@@ -65,5 +68,8 @@
   }
   .home_search_input input {
     width: auto !important;
+  }
+  .home_explore {
+    flex-direction: column;
   }
 }
