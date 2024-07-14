@@ -28,6 +28,20 @@
   padding: 2px 5px;
   border-radius: 5px;
 }
+.sold_out {
+  color: red;
+  border: 1px solid red;
+  width: auto;
+  padding: 2px 5px;
+  border-radius: 5px;
+}
+.stock_count {
+  color: green;
+  border: 1px solid green;
+  width: auto;
+  padding: 2px 5px;
+  border-radius: 5px;
+}
 @media (max-width: 480px) {
   .book_card_container {
     width: 90vw;
