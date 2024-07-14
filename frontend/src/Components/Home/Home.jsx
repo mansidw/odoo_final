@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./Home.css";
 import NewArrival from "../NewArrival/NewArrival";
+import Trending from "../Trending/Trending";
 const Home = () => {
   const [searchText, setSearchText] = useState("");
   return (
@@ -18,7 +19,7 @@ const Home = () => {
       </div>
       <div className="home_explore">
         <NewArrival />
-        <NewArrival />
+        <Trending />
       </div>
     </div>
   );

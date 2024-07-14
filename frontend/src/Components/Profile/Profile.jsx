@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import "./Profile.css";
 import BookCard from "../BookCard/BookCard";
 import PlaceIcon from "@mui/icons-material/Place";
@@ -6,6 +6,34 @@ import PhoneIcon from "@mui/icons-material/Phone";
 import EmailIcon from "@mui/icons-material/Email";
 
 const Profile = () => {
+  const [data, setData] = useState([
+    {
+      author: "Harper Lee",
+      borrow_count: 1,
+      description:
+        "A poignant novel that explores racial injustice and moral growth in the American South.",
+      genre: "Fiction",
+      isbn: "9780061120084",
+      publisher: "Harper Perennial Modern Classics",
+      quantity: 6,
+      timestamp: "2024-07-14",
+      title: "To Kill a Mockingbird",
+      year: "2006",
+    },
+    {
+      author: "Yuval Noah Harari",
+      borrow_count: 0,
+      description:
+        "A thought-provoking exploration of the history of humanity and our societal evolution.",
+      genre: "History",
+      isbn: "9780143128540",
+      publisher: "Harper",
+      quantity: 5,
+      timestamp: "2024-07-14",
+      title: "Sapiens: A Brief History of Humankind",
+      year: "2015",
+    },
+  ]);
   return (
     <div className="profile_container">
       <div className="profile_item">
@@ -22,9 +50,9 @@ const Profile = () => {
         </div>
         <div className="profile_my_books">
           <h1>My Books</h1>
-          <BookCard daysRemaining={true} />
-          <BookCard daysRemaining={true} />
-          <BookCard daysRemaining={true} />
+          {data.map((book, key) => {
+            return <BookCard book={book} daysRemaining={true} />;
+          })}
         </div>
       </div>
       <div className="user_profile">
