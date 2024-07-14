@@ -154,8 +154,8 @@ def update_transaction_status():
         checkout_date_plus_week = add_working_days(checkout_date, 5)
         transaction_data = transaction_doc.to_dict()
         transaction_data['status'] = 'accepted'
-        transaction_data['checkout_date']= checkout_date_plus_week.strftime("%Y%m%d")
-        transaction_data['due_date']= datetime.utcnow().strftime("%Y%m%d")
+        transaction_data['checkout_date']= checkout_date_plus_week.strftime("%Y-%m-%d")
+        transaction_data['due_date']= datetime.utcnow().strftime("%Y-%m-%d")
         transaction_ref.update(transaction_data)
         return jsonify({"success": True}), 200
     except Exception as e:
