@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Profile.css";
 import BookCard from "../BookCard/BookCard";
 import PlaceIcon from "@mui/icons-material/Place";
@@ -6,6 +6,9 @@ import PhoneIcon from "@mui/icons-material/Phone";
 import EmailIcon from "@mui/icons-material/Email";
 import { useAuth } from "../../context/AuthContext";
 import { makePayment } from "./paymentHandler";
+import { getToken, setToken } from "../../utils/common";
+import axios from "axios";
+import { BASEURL } from "../../utils/endpoint";
 
 const Profile = () => {
   const { contextuser } = useAuth();
@@ -253,7 +256,22 @@ const Profile = () => {
     },
   ]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [overdue, setOverdue] = useState(0);
   const itemsPerPage = 5;
+
+  useEffect(() => {
+    // eslint-disable-next-line no-unused-expressions
+    async () => {
+      const token = await getToken();
+      console.log("token", token);
+      let res = await axios.get(BASEURL + "api/get-profile-data", {
+        headers: {
+          "X-Firebase-AppCheck": `${token}`,
+        },
+      });
+      console.log(res);
+    };
+  });
 
   const filteredData = data.filter((book) =>
     book.title.toLowerCase().includes(searchText.toLowerCase())
@@ -340,7 +358,9 @@ const Profile = () => {
             <p>Overdue fees: </p>
             <p>Rs. 45</p>
           </div>
-          <button className="pay_fees_button" onClick={() => makePayment()}>Pay Overdue fees</button>
+          <button className="pay_fees_button" onClick={() => makePayment()}>
+            Pay Overdue fees
+          </button>
         </div>
       </div>
     </div>

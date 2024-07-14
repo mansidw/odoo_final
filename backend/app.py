@@ -12,6 +12,7 @@ from datetime import datetime
 from decorators import verify_token
 load_dotenv()
 from utils.groq_utils import get_recommendations
+import razorpay
 
 
 app = Flask(__name__)
@@ -169,8 +170,10 @@ def create_borrowing_transaction(claims):
 
     if not book_doc.exists:
         return jsonify({"error": "Book not found"}), 404
+    book_data = book_doc.to_dict()
+    if(book_data['quantity']<=0):
+        return jsonify({"quantity": "0"}), 404
 
-    # Create borrowing transaction
     try:
         transaction_id = str(uuid.uuid4())
         transaction_data = {
@@ -184,6 +187,8 @@ def create_borrowing_transaction(claims):
         }
         transaction_ref = db.collection('borrowing_transactions').document(transaction_id)
         transaction_ref.set(transaction_data)
+        book_data['quantity']=book_data['quantity']-1
+        book_ref.update(book_data)
         return jsonify({"success": True, "transaction_id": transaction_id}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -224,7 +229,14 @@ def update_transaction_status(claims):
         transaction_data['status'] = 'accepted'
         transaction_data['checkout_date']= datetime.utcnow().strftime("%Y%m%d%H%M%S")
         transaction_data['due_date']= datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        user_ref = db.collection('users').document(transaction_data['user_id'])
+        user_doc = user_ref.get()
 
+        book_ref=db.collection('books').document(transaction_data['book_id'])
+        book_doc = book_ref.get()
+        if user_doc.exists:
+            user_data = user_doc.to_dict()
+        send_email(user_data['email'], transaction_data['book_id'], transaction_data['due_date'],book_doc.to_dict()['title'])
         transaction_ref.update(transaction_data)
         return jsonify({"success": True}), 200
     except Exception as e:
@@ -285,13 +297,13 @@ def send_due_date_reminders():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-def send_email(to_email, book_id, due_date):
+def send_email(to_email, book_id, due_date,bookName):
     msg = Message(
         subject='Hello! Welcome to Odoo KitaabClub.', 
         sender='odookitaabclub@gmail.com',  # Ensure this matches MAIL_USERNAME
         recipients=[to_email]  # Replace with actual recipient's email
     )
-    body = f"Dear User,\n\nThis is a reminder that the book with ID {book_id} is due on {due_date}. Please return it by the due date to avoid any late fees.\n\nThank you."
+    body = f"Dear User,\n\nThis is a reminder that the book {bookName} with ID {book_id} is due on {due_date}. Please return it by the due date to avoid any late fees.\n\nThank you."
     msg.body = body
     mail.send(msg)
 
@@ -473,12 +485,14 @@ def get_profile_data(claims):
         
         
         transactions_ref = db.collection('borrowing_transactions')
-        query = transactions_ref.where('user_id', '==', user_id).where('status', '==', 'accepted')
+        query = transactions_ref.where('user_id', '==', user_id).where('status', '==', 'submitted')
 
         transactions = [doc.to_dict() for doc in query.stream()]
         # will contain all the books directly borrowed by the user in the past
         book_details = []
         total_overdue = 0
+
+        print(transactions)
 
         for transaction in transactions:
             input_date_str = transaction.get('due_date')
@@ -551,6 +565,17 @@ def userdetails(claims):
     except Exception as e: 
         print(str(e))
         return {"error": str(e)}, 500
+    
+@app.route('/create_order', methods=['POST'])
+def createOrder():
+    try:
+        client = razorpay.Client(auth=(os.environ.get('RAZORPAY_USERNAME'),os.environ.get('RAZORPAY_PASSWORD')))
+        data = { "amount": 500, "currency": "INR", "receipt": "order_rcptid_11" }
+        payment = client.order.create(data=data)
+
+        return jsonify({"id":payment.get("id"),"amount":payment.get("amount"),"currency":payment.get("currency")})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500    
 
 
 
