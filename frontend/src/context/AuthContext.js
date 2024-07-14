@@ -1,40 +1,51 @@
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import React, { createContext, useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { auth } from "../utils/firebase";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const storedUser = localStorage.getItem("user");
+  const [contextuser, setContextUser] = useState(() => {
+    const storedUser = localStorage.getItem("contextuser");
     return storedUser ? JSON.parse(storedUser) : null;
   });
   const navigate = useNavigate();
 
-  useEffect(() => {
+  onAuthStateChanged(auth, (user) => {
+    console.log("auth-context user");
+    console.log(contextuser);
     if (user) {
-      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("contextuser", JSON.stringify(contextuser));
     } else {
-      localStorage.removeItem("user");
+      console.log("user removed for localstorage");
+      localStorage.removeItem("contextuser");
     }
-  }, [user]);
+  });
 
-  const login = (userData) => {
-    setUser(userData);
-    localStorage.setItem("user", JSON.stringify(userData));
+  const contextlogin = (userData) => {
+    setContextUser(userData);
+    console.log("saved in localstorage");
+    localStorage.setItem("contextuser", JSON.stringify(userData));
   };
 
-  const logout = () => {
-    setUser(null);
-    toast.success("Logged out successfully", {
-      position: "bottom-center",
-    });
-    localStorage.removeItem("user");
-    navigate("/");
+  const logout = async () => {
+    try {
+      await signOut(auth);
+      setContextUser(null);
+      toast.success("Logged out successfully", {
+        position: "bottom-center",
+      });
+    } catch (err) {
+      console.error(err);
+      localStorage.removeItem("contextuser");
+      navigate("/");
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ contextuser, contextlogin, logout }}>
       {children}
     </AuthContext.Provider>
   );
