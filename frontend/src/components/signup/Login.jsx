@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { auth, provider } from "../../utils/firebase";
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { setToken } from "../../utils/common";
+import { Link } from "react-router-dom";
 
 
 var empty_user = {
@@ -69,8 +70,7 @@ const Login = () => {
                     Login
                 </button>
                 <p className="register_text">
-                    Don't have account?
-                    <p>Sign-up</p>
+                    Don't have account? <Link to='/register'>Sign up</Link>
                 </p>
                 <hr />
                 <button className="login-with-google-btn" onClick={signInGoogle}>
