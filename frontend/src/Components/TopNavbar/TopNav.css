@@ -45,6 +45,14 @@
   border: 2px solid var(--primary);
 }
 
+.top_nav_button:disabled {
+  background-color: gray;
+  color: lightgray;
+  border: 2px solid gray;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .topnav_ele a {
   text-decoration: none !important;
   color: black !important;
