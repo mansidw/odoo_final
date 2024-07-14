@@ -550,12 +550,13 @@ def getuser(claims):
         return {"error": str(ex)}, 500
 
 @app.route('/api/userdetails', methods=['POST'])
-@verify_token
-def userdetails(claims):
+def userdetails():
     try:
         form_data = request.json
-        form_data['user_id'] = claims['user_id']
-        form_data['email'] = claims['email']
+        form_data['user_id'] = "useridtp"
+        form_data['email'] = "dwivedimav@gmail.com"
+        form_data['author'] = [form_data["author"]]
+        form_data['genre'] = [form_data["genre"]]
 
         user = user_ref.add(form_data)
         user = user[1].get().to_dict()
