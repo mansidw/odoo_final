@@ -53,4 +53,7 @@
     width: 100vw;
     margin: 0;
   }
+  .profile_search {
+    text-align: center;
+  }
 }
