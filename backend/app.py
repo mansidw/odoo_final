@@ -37,7 +37,46 @@ firebase_admin.initialize_app(cred)
 db = firestore.client()
 user_ref = db.collection('user')
 
-@app.route('/api/check-auth', methods=['GET','POST'])
+
+@app.route('/')
+def hello_world():
+    return 'Hello World'
+
+@app.route('/api/getuser', methods=['GET'])
+@verify_token
+def getuser(claims):
+    try:
+        # email = request.args['email']
+        # print("email - ", email)
+        email = claims['email']
+        user = user_ref.where('email', '==', email).get()
+        if user: 
+            return jsonify(user[0].to_dict()), 200
+        else:
+            return {'res': 'not found'}, 404
+    except Exception as e:
+        print("err: ", str(e))
+        return {"error": str(e)}, 500
+
+@app.route('/api/userdetails', methods=['POST'])
+@verify_token
+def userdetails(claims):
+    try:
+        form_data = request.json
+        form_data['user_id'] = claims['user_id']
+        form_data['email'] = claims['email']
+        form_data['name'] = claims['name']
+
+        user = user_ref.add(form_data)
+        user = user[1].get().to_dict()
+        print(user)
+
+        return {"res": "success", "data": user}, 200
+    except Exception as e: 
+        print(str(e))
+        return {"error": str(e)}, 500
+
+@app.route('/check-auth', methods=['GET','POST'])
 @verify_token
 def checkauth(claims):
     try:
@@ -330,21 +369,6 @@ def search_books():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-
-# API to search ALL books 
-@app.route('/searchAll', methods=['GET'])
-def search_allbooks():
-    try:
-        
-        books_ref = db.collection('books').get()
-        books = []
-        for doc in books_ref:
-            books.append(doc.to_dict())
-        
-        return jsonify({"success": True, "books": books}), 200
-    
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
     
 
 @app.route('/new_arrivals', methods=['GET'])
@@ -377,6 +401,21 @@ def most_trending_books():
     
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+# API to search ALL books 
+@app.route('/searchAll', methods=['GET'])
+def search_allbooks():
+    try:
+        
+        books_ref = db.collection('books').get()
+        books = []
+        for doc in books_ref:
+            books.append(doc.to_dict())
+        
+        return jsonify({"success": True, "books": books}), 200
+    
+    except Exception as e:
+        return jsonify(books), 500
 
 @app.route('/api/get-personalised-recommendations', methods=['GET'])
 @verify_token
@@ -535,37 +574,6 @@ def get_profile_data(claims):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/getuser', methods=['GET'])
-@verify_token
-def getuser(claims):
-    try:
-        email = claims['email']
-        user = user_ref.where('email', '==', email).get()
-        if user: 
-            return jsonify(user[0].to_dict()), 200
-        else:
-            return {'res': 'not found'}, 404
-    except Exception as ex:
-        print("err: ", str(ex))
-        return {"error": str(ex)}, 500
-
-@app.route('/api/userdetails', methods=['POST'])
-def userdetails():
-    try:
-        form_data = request.json
-        form_data['user_id'] = "useridtp"
-        form_data['email'] = "dwivedimav@gmail.com"
-        form_data['author'] = [form_data["author"]]
-        form_data['genre'] = [form_data["genre"]]
-
-        user = user_ref.add(form_data)
-        user = user[1].get().to_dict()
-        print(user)
-
-        return {"res": "success", "data": user}, 200
-    except Exception as e: 
-        print(str(e))
-        return {"error": str(e)}, 500
     
 @app.route('/create_order', methods=['POST'])
 def createOrder():
@@ -577,7 +585,6 @@ def createOrder():
         return jsonify({"id":payment.get("id"),"amount":payment.get("amount"),"currency":payment.get("currency")})
     except Exception as e:
         return jsonify({"error": str(e)}), 500    
-
 
 
 if __name__ == '__main__':

@@ -10,8 +10,10 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import { Link, useNavigate } from "react-router-dom";
+import { getToken, setToken } from "../../utils/common";
 
 var empty_user = {
+  name: "",
   email: "",
   password: "",
 };
@@ -32,6 +34,11 @@ const Register = () => {
         user.email,
         user.password
       );
+
+      await updateProfile(result.user, {
+        displayName: user.name,
+      });
+
       console.log(result);
       toast.success("Please provide above details", {
         position: "bottom-center",
@@ -52,6 +59,8 @@ const Register = () => {
       console.log(result.user.email);
       console.log(result.user.uid);
       navigate("/userdetails");
+      await setToken(await result.user.getIdToken());
+      console.log(getToken())
     } catch (error) {
       console.log(error);
     }
@@ -61,6 +70,13 @@ const Register = () => {
     <div className="login_container">
       <div className="login">
         <img className="sidebar_logo" src="../../logo.png" alt="" />
+        <input
+          type="text"
+          name="name"
+          value={user.name}
+          placeholder="Enter User"
+          onChange={handleChange}
+        />
         <input
           type="text"
           name="email"

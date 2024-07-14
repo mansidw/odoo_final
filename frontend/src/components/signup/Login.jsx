@@ -22,15 +22,26 @@ const Login = () => {
         setUser({ ...user, [e.target.name]: e.target.value });
     };
 
-    const getUser = async (e) => {
+    const getUser = async (email) => {
         try {
             const token = await getToken();
             console.log("token", token);
-            let res = await axios.get(BASEURL + "api/getuser", {
-                headers: {
-                    "X-Firebase-AppCheck": `${token}`,
-                },
-            });
+            console.log("email", email)
+            let res;
+            if (email) {
+
+                res = await axios.get(BASEURL + "api/getuser?email=" + email, {
+                    headers: {
+                        "X-Firebase-AppCheck": `${token}`,
+                    },
+                });
+            } else {
+                res = await axios.get(BASEURL + "api/getuser", {
+                    headers: {
+                        "X-Firebase-AppCheck": `${token}`,
+                    },
+                });
+            }
             console.log("get user done");
             console.log(res.data);
             contextlogin(res.data);
@@ -55,9 +66,9 @@ const Login = () => {
                 user.email,
                 user.password
             );
-
+            // setToken(await result.user.getIdToken());
             console.log("sign in done");
-            getUser();
+            getUser(user.email);
         } catch (error) {
             console.log(error);
             toast.error("Something went wrong", {
