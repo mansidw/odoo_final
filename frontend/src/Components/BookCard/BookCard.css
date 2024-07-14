@@ -21,8 +21,15 @@
   color: rgb(0, 0, 153);
 }
 
+.book_days_remaining {
+  color: chocolate;
+  border: 1px solid chocolate;
+  width: auto;
+  padding: 2px 5px;
+  border-radius: 5px;
+}
 @media (max-width: 480px) {
   .book_card_container {
-    width: 90%;
+    width: 90vw;
   }
 }

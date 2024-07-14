@@ -1,7 +1,7 @@
 import React from "react";
 import "./BookCard.css";
 
-const BookCard = () => {
+const BookCard = ({ daysRemaining = false }) => {
   return (
     <div className="book_card_container">
       <div className="book_card_item">
@@ -19,6 +19,9 @@ const BookCard = () => {
           storage space and speed.* Implement the approval hierarchy and user
           a...
         </p>
+        {daysRemaining && (
+          <span className="book_days_remaining">3 Days remaining</span>
+        )}
       </div>
     </div>
   );
