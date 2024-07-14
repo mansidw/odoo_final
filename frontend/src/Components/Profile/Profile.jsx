@@ -290,7 +290,7 @@ const Profile = () => {
         <div className="profile_my_books">
           <h1>My Books</h1>
           {currentData.map((book, key) => (
-            <BookCard key={key} book={book} borrow />
+            <BookCard key={key} book={book} daysRemaining />
           ))}
         </div>
         <div className="pagination">
