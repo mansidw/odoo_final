@@ -39,6 +39,7 @@ const Login = () => {
         try {
             let result = await signInWithPopup(auth, provider);
             setToken(await result.user.getIdToken());
+            console.log(result)
             console.log(result.user.displayName);
             console.log(result.user.email);
             console.log(result.user.uid);
