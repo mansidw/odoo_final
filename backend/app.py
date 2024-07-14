@@ -28,14 +28,16 @@ def hello_world():
 @verify_token
 def getuser(claims):
     try:
+        # email = request.args['email']
+        # print("email - ", email)
         email = claims['email']
         user = user_ref.where('email', '==', email).get()
         if user: 
             return jsonify(user[0].to_dict()), 200
         else:
             return {'res': 'not found'}, 404
-    except Exception as ex:
-        print("err: ", str(ex))
+    except Exception as e:
+        print("err: ", str(e))
         return {"error": str(e)}, 500
 
 @app.route('/api/userdetails', methods=['POST'])
@@ -45,6 +47,7 @@ def userdetails(claims):
         form_data = request.json
         form_data['user_id'] = claims['user_id']
         form_data['email'] = claims['email']
+        form_data['name'] = claims['name']
 
         user = user_ref.add(form_data)
         user = user[1].get().to_dict()
