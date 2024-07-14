@@ -66,8 +66,6 @@ def fetch_book_details():
 @app.route('/save_book_details', methods=['POST'])
 def save_book_details():
     data = request.get_json()
-    required_fields = ['isbn', 'title', 'author', 'publisher', 'year', 'genre', 'quantity']
-
     # Fetch book details from Google Books API
     response = requests.get(GOOGLE_BOOKS_API_URL, params={'q': 'isbn:' + data['isbn']})
     books_data = response.json()
@@ -158,7 +156,6 @@ def update_transaction_status():
         transaction_data['status'] = 'accepted'
         transaction_data['checkout_date']= checkout_date_plus_week.strftime("%Y%m%d")
         transaction_data['due_date']= datetime.utcnow().strftime("%Y%m%d")
-
         transaction_ref.update(transaction_data)
         return jsonify({"success": True}), 200
     except Exception as e:
@@ -233,6 +230,22 @@ def search_books():
         return jsonify({"error": str(e)}), 500
     
 
+# API to search ALL books 
+@app.route('/searchAll', methods=['GET'])
+def search_allbooks():
+    try:
+        
+        books_ref = db.collection('books').get()
+        books = []
+        for doc in books_ref:
+            books.append(doc.to_dict())
+        
+        return jsonify({"success": True, "books": books}), 200
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+
 @app.route('/new_arrivals', methods=['GET'])
 def new_arrival_books():
     try:
@@ -264,7 +277,21 @@ def most_trending_books():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/getBooksForUser/<user_id>', methods=['GET'])
+def getBooksForUser(user_id):
+    try:
+        transactions_ref = db.collection('borrowing_transactions').where('user_id', '==', user_id).stream()
+        transactions = []
+
+        for transaction in transactions_ref:
+            transaction_data = transaction.to_dict()
+            transactions.append(transaction_data)
+
+        return jsonify(transactions), 200
     
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 
 
