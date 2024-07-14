@@ -4,11 +4,36 @@ import "./Librarian.css";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const acceptButton = (props) => {
+  const updateStatus = async (event) => {
+    console.log(props);
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:5000/api/update_transaction_status",
+        {
+          transaction_id: props.data.transaction_id,
+        }
+      );
+      console.log(response.data);
+      setData(response.data);
+      toast.success("Approved", {
+        position: "bottom-center",
+      });
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      toast.error("Something went wrong", {
+        position: "bottom-center",
+      });
+    }
+  };
+
   return (
     <div className="lib_buttons">
-      <button class="accept_button">Accept</button>
+      <button class="accept_button" onClick={updateStatus}>
+        Accept
+      </button>
       <button class="accept_button red_button">Reject</button>
     </div>
   );
