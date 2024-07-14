@@ -6,6 +6,7 @@ import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { getToken, setToken } from "../../utils/common";
 import axios from "axios";
 import { BASEURL } from "../../utils/endpoint";
+import { Link } from "react-router-dom";
 
 
 var empty_user = {
@@ -85,8 +86,7 @@ const Login = () => {
                     Login
                 </button>
                 <p className="register_text">
-                    Don't have account?
-                    <p>Sign-up</p>
+                    Don't have account? <Link to='/register'>Sign up</Link>
                 </p>
                 <hr />
                 <button className="login-with-google-btn" onClick={signInGoogle}>

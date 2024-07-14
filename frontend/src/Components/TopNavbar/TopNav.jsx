@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import "./TopNav.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const TopNav = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -29,8 +30,15 @@ const TopNav = () => {
           </Link>
         </div>
         <div className={`topnav_ele buttons ${isOpen ? "open" : ""}`}>
-          <button className="top_nav_button">Sign In</button>
-          <button className="top_nav_button">Sign Up</button>
+          <button className="top_nav_button" onClick={() => navigate("/login")}>
+            Sign In
+          </button>
+          <button
+            className="top_nav_button"
+            onClick={() => navigate("/register")}
+          >
+            Sign Up
+          </button>
         </div>
         <div className="topnav_ele hamburger" onClick={toggleMenu}>
           <div className="hamburger_icon">&#9776;</div>
@@ -48,10 +56,16 @@ const TopNav = () => {
             <p className="topnav_menu_item">Profile</p>
           </Link>
           <div className="topnav_collapse_button">
-            <button className="top_nav_button" onClick={toggleMenu}>
+            <button
+              className="top_nav_button"
+              onClick={() => navigate("/login")}
+            >
               Sign In
             </button>
-            <button className="top_nav_button" onClick={toggleMenu}>
+            <button
+              className="top_nav_button"
+              onClick={() => navigate("/register")}
+            >
               Sign Up
             </button>
           </div>

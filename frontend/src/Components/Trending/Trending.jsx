@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import "./NewArrival.css";
+import "../NewArrival/NewArrival.css";
 import BookCard from "../BookCard/BookCard";
 
-const NewArrival = () => {
+const Trending = () => {
   const [data, setData] = useState([
     {
       author: "Harper Lee",
@@ -33,7 +33,7 @@ const NewArrival = () => {
   ]);
   return (
     <div className="new_arrival_container">
-      <h2 className="new_arrival_header">New Arrivals</h2>
+      <h2 className="new_arrival_header">Trending</h2>
       {data.map((book, key) => {
         return <BookCard book={book} />;
       })}
@@ -41,4 +41,4 @@ const NewArrival = () => {
   );
 };
 
-export default NewArrival;
+export default Trending;
