@@ -4,6 +4,9 @@ import Home from "./Components/Home/Home";
 import TopNav from "./Components/TopNavbar/TopNav";
 import Profile from "./Components/Profile/Profile";
 import Explore from "./Components/Explore/Explore";
+import Register from "./Components/signup/Register";
+import Login from "./Components/signup/Login";
+import UserDetails from "./Components/signup/UserDetails";
 
 function App() {
   return (
@@ -13,6 +16,9 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/explore" element={<Explore />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/userdetails" element={<UserDetails />} />
       </Routes>
     </div>
   );
