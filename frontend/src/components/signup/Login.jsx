@@ -3,7 +3,9 @@ import "./Login.css";
 import { toast } from "react-toastify";
 import { auth, provider } from "../../utils/firebase";
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
-import { setToken } from "../../utils/common";
+import { getToken, setToken } from "../../utils/common";
+import axios from "axios";
+import { BASEURL } from "../../utils/endpoint";
 
 
 var empty_user = {
@@ -17,6 +19,22 @@ const Login = () => {
         setUser({ ...user, [e.target.name]: e.target.value });
     };
 
+    const getUser = async (e) => {
+        try {
+            const token = await getToken();
+            console.log("token", token)
+            let res = await axios.get(BASEURL + "api/getuser", {
+                'headers': {
+                    'X-Firebase-AppCheck': `${token}`
+                }
+            })
+            console.log("get user done")
+            console.log(res.data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     const signIn = async (e) => {
         e.preventDefault();
         setUser(empty_user);
@@ -27,9 +45,8 @@ const Login = () => {
                 user.password
             );
 
-            console.log(result.user.displayName);
-            console.log(result.user.email);
-            console.log(result.user.uid);
+            console.log("sign in done");
+            getUser()
         } catch (error) {
             console.log(error);
         }
@@ -39,10 +56,8 @@ const Login = () => {
         try {
             let result = await signInWithPopup(auth, provider);
             setToken(await result.user.getIdToken());
-            console.log(result)
-            console.log(result.user.displayName);
-            console.log(result.user.email);
-            console.log(result.user.uid);
+            console.log("oauth in done")
+            getUser()
         } catch (error) {
             console.log(error);
         }

@@ -1,6 +1,7 @@
 from functools import wraps
 from flask import request, abort
 from firebase_admin import auth
+import datetime
 
 def verify_token(f):
     @wraps(f)
@@ -15,8 +16,8 @@ def verify_token(f):
         
         try:
             app_check_token = auth_header
-            # Verify ID token
-            app_check_claims = auth.verify_id_token(app_check_token)
+            # Verify ID token 
+            app_check_claims = auth.verify_id_token(app_check_token, check_revoked=True)
             # print(f"Verified claims: {app_check_claims}")
             # Pass the claims to the route
             return f(*args, **kwargs, claims=app_check_claims)
