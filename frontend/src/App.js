@@ -8,6 +8,7 @@ import Register from "./Components/signup/Register";
 import Login from "./Components/signup/Login";
 import UserDetails from "./Components/signup/UserDetails";
 import { ToastContainer } from "react-toastify";
+import Librarian from "./Components/Librarian/Librarian";
 import "react-toastify/dist/ReactToastify.css";
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/userdetails" element={<UserDetails />} />
+        <Route path="/librarian" element={<Librarian />} />
       </Routes>
     </div>
   );
