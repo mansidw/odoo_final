@@ -1,0 +1,49 @@
+.book_card_container {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  text-align: left;
+  width: 600px;
+  padding: 20px;
+  margin: 10px;
+  border-radius: 12px;
+}
+
+.book_card_item p {
+  margin: 2px 0;
+}
+
+.book_card_item img {
+  margin-right: 20px;
+}
+
+.blue_text {
+  color: rgb(0, 0, 153);
+}
+
+.book_days_remaining {
+  color: chocolate;
+  border: 1px solid chocolate;
+  width: auto;
+  padding: 2px 5px;
+  border-radius: 5px;
+}
+.sold_out {
+  color: red;
+  border: 1px solid red;
+  width: auto;
+  padding: 2px 5px;
+  border-radius: 5px;
+}
+.stock_count {
+  color: green;
+  border: 1px solid green;
+  width: auto;
+  padding: 2px 5px;
+  border-radius: 5px;
+}
+@media (max-width: 480px) {
+  .book_card_container {
+    width: 90vw;
+  }
+}

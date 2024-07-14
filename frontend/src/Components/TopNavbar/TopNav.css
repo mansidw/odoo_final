@@ -1,0 +1,119 @@
+.navbar_logo {
+  width: 120px;
+}
+.topnav_main_element {
+  width: 90vw;
+  margin: auto;
+  height: 10vh;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2vh;
+  padding: 0 2vw;
+  border-radius: 12px;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+  position: relative;
+  z-index: 10;
+}
+
+.topnav_ele {
+  display: flex;
+  flex-direction: row;
+}
+
+.topnav_menu_item {
+  margin: 10px;
+}
+
+.top_nav_button {
+  background-color: var(--primary);
+  color: var(--black);
+  border: none;
+  border: 2px solid var(--primary);
+  width: auto;
+  padding: 10px;
+  border-radius: 10px;
+  font-family: "Poppins", sans-serif;
+  cursor: pointer;
+  margin: 10px;
+}
+
+.top_nav_button:hover {
+  background-color: var(--white);
+  color: var(--black);
+  border: 2px solid var(--primary);
+}
+
+.top_nav_button:disabled {
+  background-color: gray;
+  color: lightgray;
+  border: 2px solid gray;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.topnav_ele a {
+  text-decoration: none !important;
+  color: black !important;
+}
+
+.hamburger {
+  display: none;
+  cursor: pointer;
+}
+
+.hamburger_icon {
+  font-size: 24px;
+}
+
+@media (max-width: 480px) {
+  .topnav_main_element {
+    width: 81vw;
+    padding: 0 4vw;
+  }
+  .topnav_ele.logo {
+    flex: 1;
+  }
+
+  .topnav_ele.menu,
+  .topnav_ele.buttons {
+    display: none;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  .dropdown_menu a {
+    text-decoration: none !important;
+    color: black !important;
+  }
+  .dropdown_menu {
+    display: flex;
+    width: 89vw !important;
+    margin: auto;
+    flex-direction: column;
+    align-items: center;
+    background-color: white;
+    position: absolute;
+    top: 12vh;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    z-index: 10;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    border-radius: 12px;
+    margin-top: 5px;
+  }
+
+  .dropdown_menu .top_nav_button {
+    margin: 10px 0;
+  }
+
+  .topnav_collapse_button > .top_nav_button {
+    margin: 10px;
+  }
+}

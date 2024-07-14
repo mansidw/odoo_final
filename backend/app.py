@@ -5,20 +5,19 @@ import requests
 import firebase_admin
 from firebase_admin import credentials, firestore
 import uuid
-from datetime import datetime
 from datetime import datetime, timedelta
 from flask_cors import CORS
 from dotenv import load_dotenv
-import os
-
-# Load environment variables from .env file
-load_dotenv()
-
+from datetime import datetime
 from decorators import verify_token
+load_dotenv()
 from utils.groq_utils import get_recommendations
 
+
 app = Flask(__name__)
-cors = CORS(app, resources={r"/*": {"origins": "*"}})
+# CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
+
 
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
@@ -35,6 +34,7 @@ cred = credentials.Certificate('./firebase_creds.json')
 firebase_admin.initialize_app(cred)
 
 db = firestore.client()
+user_ref = db.collection('user')
 
 @app.route('/api/check-auth', methods=['GET','POST'])
 @verify_token
@@ -520,6 +520,38 @@ def get_profile_data(claims):
         return jsonify({"books": book_details,"overdue":total_overdue}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/getuser', methods=['GET'])
+@verify_token
+def getuser(claims):
+    try:
+        email = claims['email']
+        user = user_ref.where('email', '==', email).get()
+        if user: 
+            return jsonify(user[0].to_dict()), 200
+        else:
+            return {'res': 'not found'}, 404
+    except Exception as ex:
+        print("err: ", str(ex))
+        return {"error": str(ex)}, 500
+
+@app.route('/api/userdetails', methods=['POST'])
+@verify_token
+def userdetails(claims):
+    try:
+        form_data = request.json
+        form_data['user_id'] = claims['user_id']
+        form_data['email'] = claims['email']
+
+        user = user_ref.add(form_data)
+        user = user[1].get().to_dict()
+        print(user)
+
+        return {"res": "success", "data": user}, 200
+    except Exception as e: 
+        print(str(e))
+        return {"error": str(e)}, 500
+
 
 
 if __name__ == '__main__':

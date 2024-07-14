@@ -1,0 +1,83 @@
+.profile_container {
+  display: flex;
+  justify-content: row;
+  padding: 20px;
+}
+.user_profile {
+  width: 35vw;
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px,
+    rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px,
+    rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
+  padding: 0 20px 20px 20px;
+  height: 500px;
+  border-radius: 12px;
+}
+.profile_item {
+  width: 60vw;
+  margin: 0 30px;
+}
+
+.profile_pic {
+  border-radius: 100%;
+  margin: 20px;
+}
+
+.user_name {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.user_info_item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.user_profile_icon {
+  margin-right: 10px;
+}
+
+.pay_fees_button {
+  background-color: #271fe0;
+  border: 3px solid #271fe0;
+  color: white;
+  border: none;
+  width: auto;
+  width: -webkit-fill-available;
+  padding: 20px;
+  border-radius: 10px;
+  font-family: "Poppins", sans-serif;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.pay_fees_button:hover {
+  background-color: white;
+  color: #271fe0;
+  border: 2px solid #271fe0;
+}
+
+.pay_fees_button:disabled {
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .user_profile {
+    width: 80vw;
+    margin: auto;
+    height: 500px;
+  }
+  .profile_container {
+    flex-direction: column-reverse;
+    padding: 20px 0 0 0;
+  }
+
+  .profile_item {
+    width: 100vw;
+    margin: 0;
+  }
+  .profile_search {
+    text-align: center;
+  }
+}
