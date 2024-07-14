@@ -9,7 +9,7 @@ import {
   updateProfile,
   onAuthStateChanged,
 } from "firebase/auth";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 var empty_user = {
   email: "",
@@ -17,6 +17,7 @@ var empty_user = {
 };
 const Register = () => {
   const [user, setUser] = useState(empty_user);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setUser({ ...user, [e.target.name]: e.target.value });
@@ -32,7 +33,14 @@ const Register = () => {
         user.password
       );
       console.log(result);
+      toast.success("Please provide above details", {
+        position: "bottom-center",
+      });
+      navigate("/userdetails");
     } catch (error) {
+      toast.error("Something went wrong", {
+        position: "bottom-center",
+      });
       console.log(error);
     }
   };
@@ -43,6 +51,7 @@ const Register = () => {
       console.log(result.user.displayName);
       console.log(result.user.email);
       console.log(result.user.uid);
+      navigate("/userdetails");
     } catch (error) {
       console.log(error);
     }
@@ -70,7 +79,7 @@ const Register = () => {
           Register
         </button>
         <p className="register_text">
-          Already have an account? <Link to="/register">Sign-in</Link>
+          Already have an account? <Link to="/login">Sign-in</Link>
         </p>
         <hr />
         <button className="login-with-google-btn" onClick={signInGoogle}>
