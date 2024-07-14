@@ -109,5 +109,28 @@ def search_allbooks():
     except Exception as e:
         return jsonify(books), 500
 
+
+@app.route('/api/fetch_submitted_transactions', methods=['GET'])
+def fetch_submitted_transactions():
+    try:
+        transactions_ref = db.collection('borrowing_transactions').where('status', '==', 'submitted').stream()
+        
+        transactions = []
+        for transaction in transactions_ref:
+            transaction_data = transaction.to_dict()
+            isbn = transaction_data['book_id']
+            book_ref = db.collection('books').document(isbn).get()
+            if book_ref.exists:
+                book_data = book_ref.to_dict()
+                transaction_data['book_name'] = book_data['title']
+            else:
+                transaction_data['book_name'] = 'Unknown'
+            
+            transactions.append(transaction_data)
+        
+        return jsonify(transactions), 200
+    except Exception as e:
+        return jsonify(e), 500
+    
 if __name__ == '__main__':
     app.run(debug=True)
