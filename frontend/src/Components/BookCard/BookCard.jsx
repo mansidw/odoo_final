@@ -1,8 +1,16 @@
 import React from "react";
 import "./BookCard.css";
+import { toast } from "react-toastify";
 
 const BookCard = ({ book, daysRemaining = false, borrow = false }) => {
-  const handleBorrow = () => {};
+  const handleBorrow = () => {
+    toast.success(
+      "Your request is sent to librarian, once approved you'll recieve a mail",
+      {
+        position: "bottom-center",
+      }
+    );
+  };
   return (
     <div className="book_card_container">
       {console.log(book)}
