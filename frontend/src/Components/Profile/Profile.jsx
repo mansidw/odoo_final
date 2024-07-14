@@ -4,8 +4,10 @@ import BookCard from "../BookCard/BookCard";
 import PlaceIcon from "@mui/icons-material/Place";
 import PhoneIcon from "@mui/icons-material/Phone";
 import EmailIcon from "@mui/icons-material/Email";
+import { useAuth } from "../../context/AuthContext";
 
 const Profile = () => {
+  const { contextuser } = useAuth();
   const [searchText, setSearchText] = useState("");
   const [data, setData] = useState([
     {
@@ -319,22 +321,19 @@ const Profile = () => {
           <div className="user_name">
             <img
               className="profile_pic"
-              src={`https://ui-avatars.com/api/?name=${"U"}&background=fec701&color=000`}
+              src={`https://ui-avatars.com/api/?name=${contextuser?.name}&background=fec701&color=000`}
               alt="profile pic"
             />
-            <p>Gaurav Parulekar</p>
+            <p>{contextuser?.name}</p>
           </div>
           <div className="user_info_item">
             <PlaceIcon className="user_profile_icon" />
-            <p>hcwghckbwkcj jbiweivvbwic e7521dnssc nsdcvdbiwbdic</p>
+            <p>{contextuser?.location}</p>
           </div>
-          <div className="user_info_item">
-            <PhoneIcon className="user_profile_icon" />
-            <p>9999999999</p>
-          </div>
+
           <div className="user_info_item">
             <EmailIcon className="user_profile_icon" />
-            <p>email@email.com</p>
+            <p>{contextuser?.email}</p>
           </div>
         </div>
       </div>

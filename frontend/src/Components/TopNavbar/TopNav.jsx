@@ -1,14 +1,18 @@
 import React, { useState } from "react";
 import "./TopNav.css";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const TopNav = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const { logout, contextuser } = useAuth();
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
+  console.log("nav - contextuser")
+  console.log(contextuser)
 
   return (
     <div className="topnav_container">
@@ -30,15 +34,24 @@ const TopNav = () => {
           </Link>
         </div>
         <div className={`topnav_ele buttons ${isOpen ? "open" : ""}`}>
-          <button className="top_nav_button" onClick={() => navigate("/login")}>
+          {!contextuser && <button className="top_nav_button" onClick={() => navigate("/login")}>
             Sign In
-          </button>
-          <button
+          </button>}
+          {!contextuser && <button
             className="top_nav_button"
             onClick={() => navigate("/register")}
           >
             Sign Up
-          </button>
+          </button>}
+          {/* <p>Hi {contextuser?.name}</p> */}
+          {contextuser && <button
+            className="top_nav_button"
+            onClick={() => logout()}
+          >
+            Logout
+          </button>}
+
+          {contextuser && <p>Hi {contextuser?.name}</p>}
         </div>
         <div className="topnav_ele hamburger" onClick={toggleMenu}>
           <div className="hamburger_icon">&#9776;</div>
