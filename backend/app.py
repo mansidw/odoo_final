@@ -5,6 +5,7 @@ from flask_cors import CORS, cross_origin
 import flask
 from uuid import uuid4
 from datetime import datetime
+import razorpay
 
 from decorators import verify_token
 
@@ -38,7 +39,7 @@ def new_arrival_books():
         for doc in books_ref:
             books.append(doc.to_dict())
         
-        return jsonify({"success": True, "books": books}), 200
+        return jsonify(books), 200
     
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -47,7 +48,7 @@ def new_arrival_books():
 @app.route('/most_trending', methods=['GET'])
 def most_trending_books():
     try:
-        books_ref = db.collection('books').order_by('borrow_count', direction=firestore.Query.DESCENDING).limit(10).get()
+        books_ref = db.collection('books').order_by('borrow_count', direction=firestore.Query.DESCENDING).limit(3).get()
         books = []
         for doc in books_ref:
             books.append(doc.to_dict())
