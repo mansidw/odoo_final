@@ -4,12 +4,23 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 import uuid
 from datetime import datetime
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from datetime import datetime, timedelta
+from flask_mail import Mail, Message
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
+
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+mail = Mail(app)
 
 GOOGLE_BOOKS_API_URL = "https://www.googleapis.com/books/v1/volumes"
 
@@ -47,6 +58,7 @@ def fetch_book_details():
         'year': book_info.get('publishedDate', '').split('-')[0],
         'genre': ', '.join(book_info.get('categories', [])),
         'description': book_info.get('description')
+        
     }
 
     return jsonify(book_details), 200
@@ -56,11 +68,11 @@ def save_book_details():
     data = request.get_json()
     required_fields = ['isbn', 'title', 'author', 'publisher', 'year', 'genre', 'quantity']
 
-    # Check if all required fields are present in the request
-    for field in required_fields:
-        if field not in data:
-            return jsonify({"error": f"{field} is required"}), 400
+    # Fetch book details from Google Books API
+    response = requests.get(GOOGLE_BOOKS_API_URL, params={'q': 'isbn:' + data['isbn']})
+    books_data = response.json()
 
+    book_info = books_data['items'][0]['volumeInfo']
     # Save the book details to Firestore
     try:
         book_ref = db.collection('books').document(data['isbn'])
@@ -71,7 +83,8 @@ def save_book_details():
             'publisher': data['publisher'],
             'year': data['year'],
             'genre': data['genre'],
-            'quantity': data['quantity']
+            'quantity': data['quantity'],
+            'imageLink': book_info['imageLinks']['thumbnail'] if 'imageLinks' in book_info else ''
         })
         return jsonify({"success": True}), 200
     except Exception as e:
@@ -83,19 +96,19 @@ def create_borrowing_transaction():
     data = request.get_json()
     required_fields = ['user_id', 'isbn']
 
-    # Check if all required fields are present in the request
     for field in required_fields:
         if field not in data:
             return jsonify({"error": f"{field} is required"}), 400
 
-    # Check if the book is in submitted status
     book_ref = db.collection('books').document(data['isbn'])
     book_doc = book_ref.get()
 
     if not book_doc.exists:
         return jsonify({"error": "Book not found"}), 404
+    book_data = book_doc.to_dict()
+    if(book_data['quantity']<=0):
+        return jsonify({"quantity": "0"}), 404
 
-    # Create borrowing transaction
     try:
         transaction_id = str(uuid.uuid4())
         transaction_data = {
@@ -109,6 +122,8 @@ def create_borrowing_transaction():
         }
         transaction_ref = db.collection('borrowing_transactions').document(transaction_id)
         transaction_ref.set(transaction_data)
+        book_data['quantity']=book_data['quantity']-1
+        book_ref.update(book_data)
         return jsonify({"success": True, "transaction_id": transaction_id}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -127,11 +142,22 @@ def update_transaction_status():
 
         if not transaction_doc.exists:
             return jsonify({"error": "Transaction not found"}), 404
+        checkout_date = datetime.utcnow()
+        def add_working_days(start_date, days_to_add):
+            current_date = start_date
+            while days_to_add > 0:
+                current_date += timedelta(days=1)
+                # Check if the day is a weekend (Saturday or Sunday)
+                if current_date.weekday() in [5, 6]:
+                    continue
+                days_to_add -= 1
+            return current_date
 
+        checkout_date_plus_week = add_working_days(checkout_date, 5)
         transaction_data = transaction_doc.to_dict()
         transaction_data['status'] = 'accepted'
-        transaction_data['checkout_date']= datetime.utcnow().strftime("%Y%m%d%H%M%S")
-        transaction_data['due_date']= datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        transaction_data['checkout_date']= checkout_date_plus_week.strftime("%Y%m%d")
+        transaction_data['due_date']= datetime.utcnow().strftime("%Y%m%d")
 
         transaction_ref.update(transaction_data)
         return jsonify({"success": True}), 200
@@ -150,12 +176,6 @@ def fetch_submitted_transactions():
         return jsonify({"error": str(e)}), 500
     
 
-# Email configuration
-SMTP_SERVER = 'smtp.gmail.com'
-SMTP_PORT = 587
-EMAIL_ADDRESS = 'odookitaabclub@gmail.com'
-EMAIL_PASSWORD = 'odoo@1234'
-
 @app.route('/send_due_date_reminders', methods=['GET'])
 def send_due_date_reminders():
     try:
@@ -164,11 +184,11 @@ def send_due_date_reminders():
         reminder_date_str = reminder_date.strftime('%Y-%m-%d')
 
         transactions_ref = db.collection('borrowing_transactions')
-        query = transactions_ref.where('due_date', '==', reminder_date_str)
+        query = transactions_ref.where('due_date', '>=', reminder_date_str)
         due_transactions = [doc.to_dict() for doc in query.stream()]
-
+        print(due_transactions)
         for transaction in due_transactions:
-            user_ref = db.collection('users').document(transaction['user_id'])
+            user_ref = db.collection('user').document(transaction['user_id'])
             user_doc = user_ref.get()
             if user_doc.exists:
                 user_data = user_doc.to_dict()
@@ -178,27 +198,73 @@ def send_due_date_reminders():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/send_mail', methods=['GET'])
-def send_email(to_email="pranjalravipatil@gmail.com", book_id="", due_date=""):
+
+def send_email(to_email, book_id, due_date):
+    msg = Message(
+        subject='Hello! Welcome to Odoo KitaabClub.', 
+        sender='odookitaabclub@gmail.com',  # Ensure this matches MAIL_USERNAME
+        recipients=[to_email]  # Replace with actual recipient's email
+    )
+    body = f"Dear User,\n\nThis is a reminder that the book with ID {book_id} is due on {due_date}. Please return it by the due date to avoid any late fees.\n\nThank you."
+    msg.body = body
+    mail.send(msg)
+
+    
+# API to search books by title, genre, or author
+@app.route('/search', methods=['GET'])
+def search_books():
     try:
-        # Set up the MIME
-        message = MIMEMultipart()
-        message['From'] = EMAIL_ADDRESS
-        message['To'] = to_email
-        message['Subject'] = 'Book Due Date Reminder'
-
-        body = f"Dear User,\n\nThis is a reminder that the book with ID {book_id} is due on {due_date}. Please return it by the due date to avoid any late fees.\n\nThank you."
-        message.attach(MIMEText(body, 'plain'))
-
-        # Send the email
-        session = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-        session.starttls()
-        session.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-        text = message.as_string()
-        session.sendmail(EMAIL_ADDRESS, to_email, text)
-        session.quit()
+        query = request.args.get('query')
+        field = request.args.get('field')  # 'title', 'genre', or 'author'
+        
+        if not query or not field:
+            return jsonify({"error": "Query and field parameters are required."}), 400
+        
+        # Query books collection based on the specified field
+        books_ref = db.collection('books').where(field, '==', query).get()
+        
+        books = []
+        for doc in books_ref:
+            books.append(doc.to_dict())
+        
+        return jsonify({"success": True, "books": books}), 200
+    
     except Exception as e:
-        print(f"Failed to send email to {to_email}: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+    
+
+@app.route('/new_arrivals', methods=['GET'])
+def new_arrival_books():
+    try:
+        today_date = datetime.now().strftime("%Y-%m-%d")
+        
+        # Query books collection where timestamp equals today's date
+        books_ref = db.collection('books').where('timestamp', '==', today_date).limit(5).get()
+        
+        books = []
+        for doc in books_ref:
+            books.append(doc.to_dict())
+        
+        return jsonify({"success": True, "books": books}), 200
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+
+@app.route('/most_trending', methods=['GET'])
+def most_trending_books():
+    try:
+        books_ref = db.collection('books').order_by('borrow_count', direction=firestore.Query.DESCENDING).limit(10).get()
+        books = []
+        for doc in books_ref:
+            books.append(doc.to_dict())
+        
+        return jsonify(books), 200
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    
 
 
 
