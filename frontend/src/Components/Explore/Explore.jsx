@@ -15,7 +15,7 @@ const Explore = () => {
         "http://books.google.com/books/content?id=B7fqAwAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
       isbn: "9780061120084",
       publisher: "Harper Perennial Modern Classics",
-      quantity: 6,
+      quantity: 0,
       timestamp: "2024-07-14",
       title: "To Kill a Mockingbird",
       year: "2006",

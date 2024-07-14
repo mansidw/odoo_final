@@ -5,6 +5,7 @@ import PlaceIcon from "@mui/icons-material/Place";
 import PhoneIcon from "@mui/icons-material/Phone";
 import EmailIcon from "@mui/icons-material/Email";
 import { useAuth } from "../../context/AuthContext";
+import { makePayment } from "./paymentHandler";
 
 const Profile = () => {
   const { contextuser } = useAuth();
@@ -335,6 +336,11 @@ const Profile = () => {
             <EmailIcon className="user_profile_icon" />
             <p>{contextuser?.email}</p>
           </div>
+          <div className="user_info_item">
+            <p>Overdue fees: </p>
+            <p>Rs. 45</p>
+          </div>
+          <button className="pay_fees_button" onClick={() => makePayment()}>Pay Overdue fees</button>
         </div>
       </div>
     </div>
