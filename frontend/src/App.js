@@ -7,10 +7,13 @@ import Explore from "./Components/Explore/Explore";
 import Register from "./Components/signup/Register";
 import Login from "./Components/signup/Login";
 import UserDetails from "./Components/signup/UserDetails";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   return (
     <div className="App">
+      <ToastContainer />
       <TopNav />
       <Routes>
         <Route path="/" element={<Home />} />
