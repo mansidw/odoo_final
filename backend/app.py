@@ -93,6 +93,21 @@ def most_trending_books():
     
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+# API to search ALL books 
+@app.route('/searchAll', methods=['GET'])
+def search_allbooks():
+    try:
+        
+        books_ref = db.collection('books').get()
+        books = []
+        for doc in books_ref:
+            books.append(doc.to_dict())
+        
+        return jsonify({"success": True, "books": books}), 200
+    
+    except Exception as e:
+        return jsonify(books), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
