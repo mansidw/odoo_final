@@ -31,7 +31,11 @@ const BookCard = ({ book, daysRemaining = false, borrow = false }) => {
 
       {borrow && (
         <div className="borrow_book">
-          <button className="top_nav_button" onClick={handleBorrow}>
+          <button
+            className="top_nav_button"
+            onClick={handleBorrow}
+            disabled={book.quantity == 0}
+          >
             Borrow
           </button>
         </div>
