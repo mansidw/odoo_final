@@ -1,17 +1,17 @@
+from flask_mail import Mail, Message
 import os
-import json
 from flask import Flask, request, jsonify
 import requests
 import firebase_admin
 from firebase_admin import credentials, firestore
 import uuid
 from datetime import datetime
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from datetime import datetime, timedelta
 from flask_cors import CORS
 from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
 load_dotenv()
 
 from decorators import verify_token
@@ -19,6 +19,14 @@ from utils.groq_utils import get_recommendations
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
+
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+mail = Mail(app)
 
 GOOGLE_BOOKS_API_URL = "https://www.googleapis.com/books/v1/volumes"
 
@@ -88,7 +96,24 @@ def fetch_book_details():
     return jsonify(book_details), 200
 
 @app.route('/api/save_book_details', methods=['POST'])
-def save_book_details():
+@verify_token
+def save_book_details(claims):
+    print(claims)
+    user_id = claims["user_id"]
+    user_ref = db.collection('user')
+    user_query = user_ref.where("user_id", "==", user_id)
+    user_docs = user_query.stream()
+
+    user_data = None
+    for doc in user_docs:
+        user_data = doc.to_dict()
+        break
+
+    if not user_data:
+        return jsonify({"error": "User not found"}), 404
+    if user_data["type"] != "librarian" :
+        return jsonify({"error": "Unauthorized Access"}), 401
+    
     data = request.get_json()
     required_fields = ['isbn', 'title', 'author', 'publisher', 'year', 'genre', 'quantity']
 
@@ -115,7 +140,21 @@ def save_book_details():
 
 #sends request    
 @app.route('/api/borrowing_transaction', methods=['POST'])
-def create_borrowing_transaction():
+@verify_token
+def create_borrowing_transaction(claims):
+    print(claims)
+    user_id = claims["user_id"]
+    user_ref = db.collection('user')
+    user_query = user_ref.where("user_id", "==", user_id)
+    user_docs = user_query.stream()
+
+    user_data = None
+    for doc in user_docs:
+        user_data = doc.to_dict()
+        break
+
+    if not user_data:
+        return jsonify({"error": "User not found"}), 404
     data = request.get_json()
     required_fields = ['user_id', 'isbn']
 
@@ -151,7 +190,24 @@ def create_borrowing_transaction():
     
     
 @app.route('/api/update_transaction_status', methods=['POST'])
-def update_transaction_status():
+@verify_token
+def update_transaction_status(claims):
+    print(claims)
+    user_id = claims["user_id"]
+    user_ref = db.collection('user')
+    user_query = user_ref.where("user_id", "==", user_id)
+    user_docs = user_query.stream()
+
+    user_data = None
+    for doc in user_docs:
+        user_data = doc.to_dict()
+        break
+
+    if not user_data:
+        return jsonify({"error": "User not found"}), 404
+    if user_data["type"] != "librarian" :
+        return jsonify({"error": "Unauthorized Access"}), 401
+    
     data = request.get_json()
     transaction_id = data.get('transaction_id')
     if not transaction_id:
@@ -175,10 +231,25 @@ def update_transaction_status():
         return jsonify({"error": str(e)}), 500
     
 @app.route('/api/fetch_submitted_transactions', methods=['GET'])
-def fetch_submitted_transactions():
+@verify_token
+def fetch_submitted_transactions(claims):
     try:
+        print(claims)
+        user_id = claims["user_id"]
+        user_ref = db.collection('user')
+        user_query = user_ref.where("user_id", "==", user_id)
+        user_docs = user_query.stream()
+
+        user_data = None
+        for doc in user_docs:
+            user_data = doc.to_dict()
+            break
+
+        if not user_data:
+            return jsonify({"error": "User not found"}), 404
+        
         transactions_ref = db.collection('borrowing_transactions')
-        query = transactions_ref.where('status', '==', 'submitted')
+        query = transactions_ref.where('status', '==', 'submitted').where("user_id", "==", user_id)
         submitted_transactions = [doc.to_dict() for doc in query.stream()]
 
         return jsonify({"submitted_transactions": submitted_transactions}), 200
@@ -214,27 +285,86 @@ def send_due_date_reminders():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/send_mail', methods=['GET'])
-def send_email(to_email="pranjalravipatil@gmail.com", book_id="", due_date=""):
+def send_email(to_email, book_id, due_date):
+    msg = Message(
+        subject='Hello! Welcome to Odoo KitaabClub.', 
+        sender='odookitaabclub@gmail.com',  # Ensure this matches MAIL_USERNAME
+        recipients=[to_email]  # Replace with actual recipient's email
+    )
+    body = f"Dear User,\n\nThis is a reminder that the book with ID {book_id} is due on {due_date}. Please return it by the due date to avoid any late fees.\n\nThank you."
+    msg.body = body
+    mail.send(msg)
+
+    
+# API to search books by title, genre, or author
+@app.route('/search', methods=['GET'])
+def search_books():
     try:
-        # Set up the MIME
-        message = MIMEMultipart()
-        message['From'] = EMAIL_ADDRESS
-        message['To'] = to_email
-        message['Subject'] = 'Book Due Date Reminder'
-
-        body = f"Dear User,\n\nThis is a reminder that the book with ID {book_id} is due on {due_date}. Please return it by the due date to avoid any late fees.\n\nThank you."
-        message.attach(MIMEText(body, 'plain'))
-
-        # Send the email
-        session = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-        session.starttls()
-        session.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-        text = message.as_string()
-        session.sendmail(EMAIL_ADDRESS, to_email, text)
-        session.quit()
+        query = request.args.get('query')
+        field = request.args.get('field')  # 'title', 'genre', or 'author'
+        
+        if not query or not field:
+            return jsonify({"error": "Query and field parameters are required."}), 400
+        
+        # Query books collection based on the specified field
+        books_ref = db.collection('books').where(field, '==', query).get()
+        
+        books = []
+        for doc in books_ref:
+            books.append(doc.to_dict())
+        
+        return jsonify({"success": True, "books": books}), 200
+    
     except Exception as e:
-        print(f"Failed to send email to {to_email}: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+    
+
+# API to search ALL books 
+@app.route('/searchAll', methods=['GET'])
+def search_allbooks():
+    try:
+        
+        books_ref = db.collection('books').get()
+        books = []
+        for doc in books_ref:
+            books.append(doc.to_dict())
+        
+        return jsonify({"success": True, "books": books}), 200
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+
+@app.route('/new_arrivals', methods=['GET'])
+def new_arrival_books():
+    try:
+        today_date = datetime.now().strftime("%Y-%m-%d")
+        
+        # Query books collection where timestamp equals today's date
+        books_ref = db.collection('books').where('timestamp', '==', today_date).limit(5).get()
+        
+        books = []
+        for doc in books_ref:
+            books.append(doc.to_dict())
+        
+        return jsonify({"success": True, "books": books}), 200
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+
+@app.route('/most_trending', methods=['GET'])
+def most_trending_books():
+    try:
+        books_ref = db.collection('books').order_by('borrow_count', direction=firestore.Query.DESCENDING).limit(10).get()
+        books = []
+        for doc in books_ref:
+            books.append(doc.to_dict())
+        
+        return jsonify(books), 200
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/get-personalised-recommendations', methods=['GET'])
 @verify_token
